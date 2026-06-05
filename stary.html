@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Journey Begins</title>
+    <style>
+        :root {
+            --bg-dark: #0a0e27;
+            --bg-light: #2b1b4d;
+            --primary-glow: rgba(147, 112, 219, 0.6);
+            --text-light: #ffffff;
+            --text-glow: #e0d4ff;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-light));
+            overflow: hidden;
+            color: var(--text-light);
+        }
+
+        /* Background elements */
+        #star-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            bottom: -20px;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-120vh); }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.9; box-shadow: 0 0 10px #fff; }
+        }
+
+        #moonlight {
+            position: absolute;
+            top: -20vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80vw;
+            height: 80vw;
+            background: radial-gradient(circle, rgba(147, 112, 219, 0.15) 0%, rgba(255, 255, 255, 0) 60%);
+            border-radius: 50%;
+            z-index: 1;
+            pointer-events: none;
+            animation: moonGlow 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes moonGlow {
+            0% { opacity: 0.4; transform: translateX(-50%) scale(0.9); }
+            100% { opacity: 0.8; transform: translateX(-50%) scale(1.1); }
+        }
+
+        /* Scene styling */
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1.5s ease, transform 1.5s ease;
+        }
+
+        .scene.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            animation: sceneFadeIn 2s ease-out;
+        }
+
+        .scene.fade-out {
+            opacity: 0;
+            transform: scale(1.1); /* Smooth zoom out */
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 50px 60px;
+            text-align: center;
+            box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.4);
+            max-width: 85%;
+            width: 450px;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* Text */
+        .title {
+            font-size: 2.8rem;
+            margin: 0 0 15px 0;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); text-shadow: 0 0 15px rgba(255, 255, 255, 0.4); }
+            50% { transform: scale(1.03); text-shadow: 0 0 25px rgba(255, 255, 255, 0.8); }
+            100% { transform: scale(1); text-shadow: 0 0 15px rgba(255, 255, 255, 0.4); }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: var(--text-glow);
+            margin: 0 0 45px 0;
+            font-weight: 300;
+            text-shadow: 0 0 10px rgba(147, 112, 219, 0.5);
+            letter-spacing: 0.5px;
+        }
+
+        /* Button */
+        .start-btn {
+            background: linear-gradient(135deg, rgba(147, 112, 219, 0.5), rgba(255, 105, 180, 0.5));
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            padding: 15px 40px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            outline: none;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(147, 112, 219, 0.4);
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: all 0.6s ease;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 30px rgba(255, 105, 180, 0.7);
+            background: linear-gradient(135deg, rgba(147, 112, 219, 0.7), rgba(255, 105, 180, 0.7));
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .start-btn:hover::before {
+            left: 100%;
+        }
+        
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Sinhala Glowing Text */
+        #sinhalaText {
+            font-size: 28px;
+            color: #ffffff;
+            text-shadow: 0 0 10px #7fd3ff, 0 0 20px #4aa3ff;
+            letter-spacing: 2px;
+            text-align: center;
+            animation: glowPulse 2s infinite;
+            min-height: 80px;
+            margin-bottom: 20px;
+        }
+
+        @keyframes glowPulse {
+            0% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.03); }
+            100% { opacity: 0.7; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div id="star-container"></div>
+    <div id="moonlight"></div>
+
+    <!-- Frame 0: Intro Screen -->
+    <div id="scene-0" class="scene active">
+        <div class="glass-card">
+            <h1 class="title">Our Journey Begins 🌙</h1>
+            <p class="subtitle">Every star in the sky led me to you...</p>
+            <button class="start-btn" onclick="startJourney()">Start Journey</button>
+        </div>
+    </div>
+
+    <!-- Frame 1: Boy Points Moon -->
+    <div id="scene-1" class="scene">
+        <div class="glass-card">
+            <h2 class="title" style="font-size: 2rem;">Under the Moonlight</h2>
+            <p class="subtitle" style="margin-bottom: 30px;">*He points towards the moon*</p>
+            <button class="start-btn" onclick="nextScene()">Look</button>
+        </div>
+    </div>
+
+    <!-- Frame 2.1: Romantic Manga-Style Close-up -->
+    <div id="scene-2" class="scene">
+        <div class="glass-card" style="width: 550px;">
+            <div id="sinhalaText"></div>
+            <button class="start-btn" id="nextSceneBtn" style="opacity: 0; pointer-events: none; transition: opacity 1.5s ease;" onclick="nextScene()">Next Scene</button>
+        </div>
+    </div>
+
+    <!-- Frame 3: Placeholder -->
+    <div id="scene-3" class="scene">
+        <div class="glass-card">
+            <h2 class="title" style="font-size: 2rem;">Chapter 2</h2>
+            <p class="subtitle" style="margin-bottom: 0;">The journey continues...</p>
+        </div>
+    </div>
+
+    <script>
+        let currentScene = 0;
+
+        function createStars() {
+            const container = document.getElementById('star-container');
+            const starCount = 150; // High count for immersive sky
+
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Randomize properties
+                const size = Math.random() * 2.5 + 0.5;
+                const left = Math.random() * 100;
+                const duration = Math.random() * 20 + 10; // 10s to 30s float up
+                const delay = Math.random() * 30; // Random negative delay up to 30s
+                const twinkleDuration = Math.random() * 3 + 2;
+                
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${left}%`;
+                
+                // Assign separate animations
+                star.style.animation = `floatUp ${duration}s linear infinite, twinkle ${twinkleDuration}s ease-in-out infinite`;
+                // Negative delay makes stars appear randomly distributed from the start
+                star.style.animationDelay = `-${delay}s, -${Math.random() * 5}s`;
+                
+                container.appendChild(star);
+            }
+        }
+
+        function showScene(id) {
+            const scenes = document.querySelectorAll('.scene');
+            scenes.forEach(scene => {
+                scene.classList.remove('active');
+                scene.classList.remove('fade-out');
+                
+                if(scene.id !== `scene-${id}`) {
+                    setTimeout(() => {
+                        if (!scene.classList.contains('active')) {
+                            scene.style.visibility = 'hidden';
+                        }
+                    }, 1500); // match CSS transition duration
+                }
+            });
+            
+            const targetScene = document.getElementById(`scene-${id}`);
+            if (targetScene) {
+                targetScene.style.visibility = 'visible';
+                targetScene.classList.add('active');
+            }
+        }
+
+        function nextScene() {
+            const currentSceneEl = document.getElementById(`scene-${currentScene}`);
+            if (currentSceneEl) {
+                currentSceneEl.classList.remove('active');
+                currentSceneEl.classList.add('fade-out');
+            }
+            
+            setTimeout(() => {
+                currentScene++;
+                showScene(currentScene);
+                
+                // If we enter Frame 2.1, start the Sinhala text effect
+                if (currentScene === 2) {
+                    document.getElementById('sinhalaText').innerHTML = ""; // reset
+                    i = 0; // reset typing index
+                    setTimeout(typeEffect, 1000); // wait for scene to fade in
+                }
+            }, 1000); // Crossfade timing: Next scene appears smoothly
+        }
+
+        function startJourney() {
+            nextScene();
+        }
+
+        const sinhalaTextStr = "දන්නවද සඳ නුඹ තමා මම දැක්ක ලස්සනම ලඳ";
+        let i = 0;
+
+        function typeEffect() {
+            const container = document.getElementById("sinhalaText");
+            if (i < sinhalaTextStr.length) {
+                container.innerHTML += sinhalaTextStr[i];
+                i++;
+                setTimeout(typeEffect, 120); // speed of appearance
+            } else {
+                // Show the next button when typing is done
+                setTimeout(() => {
+                    const btn = document.getElementById("nextSceneBtn");
+                    btn.style.opacity = 1;
+                    btn.style.pointerEvents = "auto";
+                }, 1000);
+            }
+        }
+
+        // Initialize background and first scene
+        window.onload = () => {
+            createStars();
+        };
+    </script>
+</body>
+</html>

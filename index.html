@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Ghibli Birthday Surprise</title>
+    <style>
+        /* --- Google Fonts for Ghibli Elements & Modals --- */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Quicksand:wght@500;700&display=swap');
+
+        /* --- RESPONSIVE VARIABLE ENGINE --- */
+        :root {
+            --env-width: 380px;
+            --env-height: 260px;
+            --env-half-width: 190px;
+            --env-flap-height: 135px;
+            --env-pocket-height: 130px;
+            --bow-size: 2.5rem;
+        }
+
+        /* Fluid scaling adjustments for smaller mobile screens */
+        @media (max-width: 430px) {
+            :root {
+                --env-width: 280px;
+                --env-height: 190px;
+                --env-half-width: 140px;
+                --env-flap-height: 100px;
+                --env-pocket-height: 95px;
+                --bow-size: 2rem;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #060a17;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Quicksand', sans-serif;
+            perspective: 1000px;
+            padding: 15px;
+        }
+
+        /* --- STUDIO GHIBLI GLOBAL AMBIENT BACKGROUND --- */
+        .sky-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #0b1326 0%, #162542 50%, #324b6c 80%, #52667a 100%);
+            z-index: 1;
+        }
+
+        .full-moon {
+            position: absolute;
+            top: 15%;
+            left: 75%;
+            transform: translate(-50%, -50%);
+            width: clamp(100px, 20vw, 160px);
+            height: clamp(100px, 20vw, 160px);
+            background: radial-gradient(circle, #fffdf0 0%, #fff7c2 40%, rgba(255,247,194,0.2) 70%, transparent 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 60px rgba(255, 253, 240, 0.6);
+            z-index: 2;
+        }
+
+        .starfield {
+            position: absolute;
+            width: 100%;
+            height: 70%;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 45px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px);
+            background-size: 550px 550px, 350px 350px;
+            opacity: 0.6;
+            animation: starsTwinkle 6s infinite alternate linear;
+            z-index: 2;
+        }
+
+        .sea-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30%;
+            z-index: 3;
+            overflow: hidden;
+            background: #1c334e;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: 0;
+            width: 200%;
+            height: 100%;
+            background: repeat-x url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0,60 C150,100 350,20 500,60 C650,100 850,20 1000,60 C1150,100 1350,20 1500,60 L1500,120 L0,120 Z" fill="%23244264" opacity="0.5"/></svg>');
+            background-size: 50% 100px;
+            animation: waveMotion 12s infinite linear;
+        }
+
+        @keyframes waveMotion {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        @keyframes starsTwinkle {
+            0% { opacity: 0.4; }
+            100% { opacity: 0.7; }
+        }
+
+        /* --- STAGE CONTAINER (RESPONSIVE VIEWPORT BOUNDS) --- */
+        .stage-viewport {
+            position: relative;
+            width: 95vw;
+            max-width: 480px;
+            aspect-ratio: 3 / 4;
+            max-height: 85vh;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* ================= LAYER 1: THE FLUID GHIBLI ENVELOPE ================= */
+        .envelope-overlay {
+            position: absolute;
+            width: var(--env-width);
+            height: var(--env-height);
+            background: #fdf5e6;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            cursor: pointer;
+            z-index: 100;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease;
+        }
+
+        .envelope-overlay:hover {
+            transform: scale(1.03) rotateX(4deg);
+        }
+
+        .envelope-design {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            border: 3px double #e2c98a;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .envelope-design::before {
+            content: '🌸 ✨ 🍃 ✨ 🌸';
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(0.75rem, 2vw, 0.9rem);
+            letter-spacing: 4px;
+            opacity: 0.7;
+            width: 100%;
+            text-align: center;
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 0; left: 0; width: 0; height: 0;
+            border-left: var(--env-half-width) solid transparent;
+            border-right: var(--env-half-width) solid transparent;
+            border-top: var(--env-flap-height) solid #f3ebd9;
+            transform-origin: top;
+            transition: transform 0.5s ease-in-out 0.3s;
+            z-index: 5;
+            filter: drop-shadow(0 4px 5px rgba(0,0,0,0.15));
+        }
+
+        .pocket-left {
+            position: absolute;
+            bottom: 0; left: 0; width: 0; height: 0;
+            border-left: var(--env-half-width) solid #ecdcb9;
+            border-top: var(--env-pocket-height) solid transparent;
+            border-bottom: var(--env-pocket-height) solid #ecdcb9;
+            border-radius: 0 0 0 12px;
+            z-index: 3;
+        }
+        .pocket-right {
+            position: absolute;
+            bottom: 0; right: 0; width: 0; height: 0;
+            border-right: var(--env-half-width) solid #ecdcb9;
+            border-top: var(--env-pocket-height) solid transparent;
+            border-bottom: var(--env-pocket-height) solid #ecdcb9;
+            border-radius: 0 0 12px 0;
+            z-index: 3;
+        }
+
+        .ribbon-strap {
+            position: absolute;
+            top: 45%; left: 0; width: 100%; height: 24px;
+            background: linear-gradient(to bottom, #d4af37, #aa8413, #d4af37);
+            z-index: 6;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            transition: transform 0.4s ease;
+        }
+
+        .ribbon-bow {
+            position: absolute;
+            top: 45%; left: 50%;
+            transform: translate(-50%, -35%);
+            font-size: var(--bow-size);
+            z-index: 7;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.4s ease;
+            animation: bowGlow 2s infinite alternate;
+        }
+
+        @keyframes bowGlow {
+            0% { filter: drop-shadow(0 0 2px rgba(214,175,55,0.4)); }
+            100% { filter: drop-shadow(0 0 12px rgba(214,175,55,0.9)); }
+        }
+
+        /* Cinematic Trigger Interactions */
+        .envelope-overlay.activated .ribbon-strap { transform: scaleX(0); opacity: 0; }
+        .envelope-overlay.activated .ribbon-bow { transform: translate(-50%, -35%) scale(0); opacity: 0; }
+        .envelope-overlay.activated .envelope-flap { transform: rotateX(180deg); z-index: 1; }
+        
+        .envelope-overlay.activated {
+            transform: translateY(150px) scale(0.8);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+
+        /* ================= LAYER 2: INTERACTIVE BEACH CARD ================= */
+        .scene-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: url('edited-image.png') no-repeat center center;
+            background-size: cover;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            border-radius: 12px;
+            overflow: hidden;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s, opacity 1s ease 0.6s;
+            pointer-events: none;
+            border: 4px solid #fffdf9;
+        }
+
+        .scene-container.reveal {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        /* Interactive Hotspot Map */
+        .hotspot {
+            position: absolute;
+            cursor: pointer;
+            z-index: 10;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+            -webkit-tap-highlight-color: transparent; /* Seamless Mobile Experience */
+        }
+        
+        .hotspot:hover {
+            transform: scale(1.05);
+        }
+
+        #hotspot-moon { top: 36%; left: 17%; width: 17%; height: 13%; }
+        #hotspot-bouquet { top: 45%; left: 31%; width: 18%; height: 12%; }
+
+        .hotspot-butterfly { width: 12%; height: 9%; }
+        #bf-1 { top: 28%; left: 11%; }  
+        #bf-2 { top: 26%; left: 65%; }  
+        #bf-3 { top: 66%; left: 11%; }  
+        #bf-4 { top: 69%; left: 80%; }  
+
+        /* Particle Vector Formatting */
+        .note-particle {
+            position: absolute;
+            z-index: 30;
+            font-size: 1.5rem;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.5); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+        }
+
+        .shooting-star {
+            position: absolute;
+            width: 4px; height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 20px 4px #fff, 0 0 40px 10px rgba(255,255,255,0.6);
+            pointer-events: none;
+            opacity: 0;
+            animation: shoot linear forwards;
+            z-index: 5;
+        }
+
+        @keyframes shoot {
+            0% { transform: translate(0, 0) scale(1); opacity: 0; }
+            15% { opacity: 1; }
+            100% { transform: translate(-400px, 400px) scale(0.2); opacity: 0; }
+        }
+
+        /* Instruction Text */
+        .instruction-text {
+            position: absolute;
+            top: 4%;
+            width: 100%;
+            text-align: center;
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            color: #ffdfa0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.9), 0 0 20px rgba(255, 223, 160, 0.6);
+            font-weight: bold;
+            letter-spacing: 2px;
+            pointer-events: none;
+            z-index: 20;
+            animation: floatGently 3s infinite ease-in-out;
+        }
+
+        @keyframes floatGently {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* Responsive Fluid Typography Overlay */
+        .birthday-text {
+            position: absolute;
+            top: 20%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(1.5rem, 5.5vw, 2.5rem);
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px #ff7beb, 0 0 30px #ff7beb, 0 0 50px #ff7beb;
+            pointer-events: none;
+            z-index: 15;
+            text-align: center;
+            width: 90%;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .birthday-text span {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(20px) scale(0.3);
+            transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .birthday-text.show span {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Envelope Burst FX Elements */
+        .fx-particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 150;
+            animation: burstOut 1.5s cubic-bezier(0.1, 0.8, 0.25, 1) forwards;
+        }
+
+        @keyframes burstOut {
+            0% { transform: translate(0, 0) scale(0.3) rotate(0deg); opacity: 1; }
+            100% { transform: translate(var(--mx), var(--my)) scale(var(--s)) rotate(var(--r)); opacity: 0; }
+        }
+
+        /* Layout Modals & Popups Adaptive Alignment */
+        .modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 17, 32, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            z-index: 20;
+            padding: 20px;
+        }
+
+        .modal.active { opacity: 1; pointer-events: auto; }
+
+        .popup-card {
+            text-align: center;
+            padding: clamp(20px, 5vw, 30px) clamp(15px, 4vw, 25px);
+            border-radius: 15px;
+            width: 100%;
+            max-width: 290px;
+            animation: cardPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes cardPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Birthday Cake Dimensional Tuning */
+        .cake {
+            position: relative;
+            width: clamp(110px, 25vw, 150px);
+            height: clamp(80px, 18vw, 100px);
+            background: #f4a261;
+            border-radius: 10px 10px 0 0;
+            box-shadow: inset 0 10px 0 #e76f51, 0 10px 20px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+        .cake::before {
+            content: ''; position: absolute;
+            top: 40%; left: 0; width: 100%; height: 15px;
+            background: #ffffff;
+        }
+        .candle {
+            position: absolute; top: -25px; left: 50%;
+            transform: translateX(-50%);
+            width: 8px; height: 25px;
+            background: #e63946; border-radius: 3px;
+        }
+        .flame {
+            position: absolute; top: -14px; left: 50%;
+            transform: translateX(-50%);
+            width: 10px; height: 16px;
+            background: #ffb703;
+            border-radius: 50% 50% 20% 20%;
+            animation: flicker 0.1s ease-in-out infinite alternate;
+            box-shadow: 0 0 15px #ffb703;
+            transition: all 0.4s ease-out;
+        }
+        .flame.extinguished {
+            animation: none !important;
+            transform: translateX(-50%) scale(0) !important;
+            opacity: 0 !important;
+        }
+
+        .btn-close {
+            background: #ff7beb;
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(255,123,235,0.4);
+        }
+
+        .heart-content {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+        }
+        .heart-btn {
+            font-size: clamp(2.5rem, 8vw, 3.5rem);
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 10px;
+            animation: pulse 0.8s infinite alternate;
+            -webkit-tap-highlight-color: transparent;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+        }
+
+        .balcony-content {
+            background: linear-gradient(135deg, #1a103c, #0b061a);
+            border: 2px solid #ff7beb;
+            box-shadow: 0 0 35px rgba(255,123,235,0.6);
+            color: white;
+        }
+        .balcony-content h2 { color: #ff7beb; margin-bottom: 15px; font-size: 1.4rem; }
+        .balcony-content p { font-size: clamp(1.1rem, 4vw, 1.4rem); font-weight: bold; margin-bottom: 25px; }
+    </style>
+</head>
+<body>
+
+    <div class="sky-canvas">
+        <div class="full-moon"></div>
+        <div class="starfield"></div>
+        <div class="sea-container">
+            <div class="wave"></div>
+        </div>
+    </div>
+
+    <div class="stage-viewport" id="stage-viewport">
+        
+        <div class="envelope-overlay" id="envelope-wrapper" onclick="unwrapCinematicEnvelope()">
+            <div class="envelope-flap"></div>
+            <div class="ribbon-strap"></div>
+            <div class="ribbon-bow">💝</div>
+            <div class="envelope-pockets">
+                <div class="pocket-left"></div>
+                <div class="pocket-right"></div>
+            </div>
+            <div class="envelope-design"></div>
+        </div>
+
+        <div class="scene-container" id="main-scene">
+            <audio id="birthday-audio" src="birthday.mp3" preload="auto"></audio>
+
+            <div class="instruction-text">Find 3 hidden items ✨</div>
+
+            <div id="hotspot-moon" class="hotspot" title="Touch the Moon"></div>
+            <div id="hotspot-bouquet" class="hotspot" title="Touch the Bouquet"></div>
+            
+            <div id="bf-1" class="hotspot hotspot-butterfly" title="Touch the Butterfly"></div>
+            <div id="bf-2" class="hotspot hotspot-butterfly" title="Touch the Butterfly"></div>
+            <div id="bf-3" class="hotspot hotspot-butterfly" title="Touch the Butterfly"></div>
+            <div id="bf-4" class="hotspot hotspot-butterfly" title="Touch the Butterfly"></div>
+
+            <div id="birthday-text" class="birthday-text"></div>
+
+            <div id="cake-modal" class="modal">
+                <div class="cake">
+                    <div class="candle"><div class="flame" id="cake-flame"></div></div>
+                </div>
+                <h3 style="margin-bottom: 15px; color: white;">Make a wish! 🎂</h3>
+                <button class="btn-close" onclick="blowCandleEffect()">Blow Candle</button>
+            </div>
+
+            <div id="heart-modal" class="modal">
+                <div class="popup-card heart-content">
+                    <p style="font-size: 1.1rem; font-weight: bold;">Wish to see another surprise?</p>
+                    <div class="heart-btn" onclick="revealBalconyCard()">❤️</div>
+                </div>
+            </div>
+
+            <div id="balcony-modal" class="modal">
+                <div class="popup-card balcony-content">
+                    <h2>✨ Come to the balcony... ✨</h2>
+                    <p style="font-size: 0.9rem; font-weight: normal; opacity: 0.8; margin-bottom: 0;">(Double tap to go back)</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const envelope = document.getElementById('envelope-wrapper');
+        const mainCardScene = document.getElementById('main-scene');
+        const audioTrack = document.getElementById('birthday-audio');
+        let audioTimeout = null;
+
+        // Interaction Progress Tracking
+        let moonTapped = false;
+        let butterflyTapped = false;
+        let flowerTapped = false;
+        let surpriseShown = false;
+
+        function checkAllFound() {
+            if (moonTapped && butterflyTapped && flowerTapped && !surpriseShown) {
+                surpriseShown = true;
+                // Wait briefly so the final interaction effect can finish
+                setTimeout(() => {
+                    document.getElementById('heart-modal').classList.add('active');
+                }, 1500);
+            }
+        }
+
+        // --- ENVELOPE CINEMATIC UNWRAP ENGINE ---
+        function unwrapCinematicEnvelope() {
+            envelope.classList.add('activated');
+
+            // Inject structural butterfly sparkles from local node position coordinates
+            setTimeout(() => {
+                const burstQuantity = window.innerWidth < 430 ? 30 : 45; // Performance scaling for mobile
+                for (let i = 0; i < burstQuantity; i++) {
+                    spawnBurstParticle();
+                }
+            }, 400);
+
+            // Shift layer stack focal visibility seamlessly
+            setTimeout(() => {
+                envelope.remove();
+                mainCardScene.classList.add('reveal');
+            }, 1000);
+        }
+
+        function spawnBurstParticle() {
+            const items = ['🦋', '✨', '🌸', '🍃', '✧'];
+            const p = document.createElement('div');
+            p.className = 'fx-particle';
+            p.innerText = items[Math.floor(Math.random() * items.length)];
+
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = window.innerWidth < 430 ? (Math.random() * 160 + 50) : (Math.random() * 250 + 70);
+            const mx = Math.cos(angle) * velocity;
+            const my = Math.sin(angle) * velocity - 80;
+
+            p.style.setProperty('--mx', `${mx}px`);
+            p.style.setProperty('--my', `${my}px`);
+            p.style.setProperty('--s', Math.random() * 1.0 + 0.5);
+            p.style.setProperty('--r', `${Math.random() * 360}deg`);
+
+            p.style.left = '50%';
+            p.style.top = '50%';
+
+            document.getElementById('stage-viewport').appendChild(p);
+            setTimeout(() => p.remove(), 1500);
+        }
+
+        // --- INTERACTIVE CARD OPERATIONS ---
+
+        // Map Split Strings into Staggered Spans safely 
+        const textContainer = document.getElementById('birthday-text');
+        const greetingString = "✨ Happy Birthday! ✨";
+        textContainer.innerHTML = greetingString.split('').map((char, index) => {
+            const displayChar = char === ' ' ? '&nbsp;' : char;
+            return `<span style="transition-delay: ${index * 50}ms">${displayChar}</span>`;
+        }).join('');
+
+        // 1. Moon Hotspot Interaction Handler (Shooting Stars Shower)
+        document.getElementById('hotspot-moon').addEventListener('click', () => {
+            const starsQuantity = window.innerWidth < 430 ? 7 : 12;
+            for (let i = 0; i < starsQuantity; i++) {
+                setTimeout(() => { spawnShootingStar(); }, i * 180); 
+            }
+            textContainer.classList.add('show');
+            setTimeout(() => { textContainer.classList.remove('show'); }, 4500);
+
+            if (!moonTapped) {
+                moonTapped = true;
+                checkAllFound();
+            }
+        });
+
+        function spawnShootingStar() {
+            const star = document.createElement('div');
+            star.className = 'shooting-star';
+            star.style.left = `${Math.random() * 40 + 50}%`;
+            star.style.top = `${Math.random() * 20}%`;
+            
+            const duration = Math.random() * 0.6 + 0.8; 
+            star.style.animationDuration = `${duration}s`;
+
+            mainCardScene.appendChild(star);
+            setTimeout(() => star.remove(), duration * 1000);
+        }
+
+        // 2. Butterflies Audio Playback Runtime Isolation Engine (13 Seconds)
+        const butterflies = document.querySelectorAll('.hotspot-butterfly');
+        butterflies.forEach(element => {
+            element.addEventListener('click', (e) => {
+                // Support both standard mouse click and touch pointer client configurations
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                if (clientX && clientY) createNoteParticle(clientX, clientY);
+                
+                if (audioTrack) {
+                    clearTimeout(audioTimeout);
+                    audioTrack.currentTime = 0; 
+                    audioTrack.play().catch(err => console.log("User interaction required to start context audio streams."));
+
+                    // Audio clamp execution cutoff precisely at 13 seconds
+                    audioTimeout = setTimeout(() => {
+                        audioTrack.pause();
+                        audioTrack.currentTime = 0;
+                    }, 13000);
+                }
+
+                if (!butterflyTapped) {
+                    butterflyTapped = true;
+                    checkAllFound();
+                }
+            });
+        });
+
+        function createNoteParticle(clientX, clientY) {
+            const rect = mainCardScene.getBoundingClientRect();
+            const note = document.createElement('div');
+            note.className = 'note-particle';
+            note.innerText = '🎵';
+            note.style.left = `${clientX - rect.left}px`;
+            note.style.top = `${clientY - rect.top}px`;
+
+            mainCardScene.appendChild(note);
+            setTimeout(() => note.remove(), 1000);
+        }
+
+        // 3. Bouquet → Cake Modal (marks flower as found when candle is blown)
+        document.getElementById('hotspot-bouquet').addEventListener('click', () => {
+            // Only open cake modal if it's not already active
+            if (!document.getElementById('cake-modal').classList.contains('active')) {
+                document.getElementById('cake-flame').classList.remove('extinguished');
+                document.getElementById('cake-modal').classList.add('active');
+            }
+        });
+
+        function blowCandleEffect() {
+            document.getElementById('cake-flame').classList.add('extinguished'); 
+            setTimeout(() => {
+                closeModal('cake-modal');
+                // Mark flower as found
+                if (!flowerTapped) {
+                    flowerTapped = true;
+                }
+                // Always check — the other two might already be done
+                checkAllFound();
+            }, 600);
+        }
+
+        function revealBalconyCard() {
+            closeModal('heart-modal');
+            document.getElementById('balcony-modal').classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Double tap detection to close balcony modal
+        let lastBalconyTap = 0;
+        document.getElementById('balcony-modal').addEventListener('click', function(e) {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastBalconyTap;
+            if (tapLength < 500 && tapLength > 0) {
+                closeModal('balcony-modal');
+                e.preventDefault();
+            }
+            lastBalconyTap = currentTime;
+        });
+    </script>
+</body>
+</html>
